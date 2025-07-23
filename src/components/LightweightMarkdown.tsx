@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import remarkGfm from 'remark-gfm';
 
 // Lazy load ReactMarkdown only when needed
 const ReactMarkdown = lazy(() => import('react-markdown'));
@@ -98,17 +99,30 @@ const LightweightMarkdown = ({ content, title, category, tags, type }: Lightweig
             <div className="text-gray-300 whitespace-pre-wrap">{content}</div>
           }>
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
-                // Simple code block rendering without syntax highlighting
+                // Enhanced code block rendering with keyboard shortcut styling
                 code: ({ node, className, children, ...props }: any) => {
                   const match = /language-(\w+)/.exec(className || '');
                   const isInline = !match;
                   const codeText = String(children).replace(/\n$/, '');
                   
-                  return !isInline ? (
-                    <SimpleCodeBlock children={codeText} language={match[1]} />
-                  ) : (
-                    <code className="bg-gray-800 px-2 py-1 rounded text-sm font-mono" {...props}>
+                  if (!isInline) {
+                    return <SimpleCodeBlock children={codeText} language={match[1]} />;
+                  }
+                  
+                  // Special styling for keyboard shortcuts in tables
+                  const isKeyboardShortcut = /^[A-Za-z0-9\s\+\-\*\/\(\)\[\]\{\}\.\,\;\:\!\@\#\$\%\^\&\*\(\)\_\+\-\=\{\}\[\]\|\:\;\'\"\<\>\?\/\\]+$/.test(codeText);
+                  
+                  return (
+                    <code 
+                      className={`px-2 py-1 rounded text-sm font-mono ${
+                        isKeyboardShortcut 
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                          : 'bg-gray-800 text-gray-200'
+                      }`} 
+                      {...props}
+                    >
                       {children}
                     </code>
                   );
@@ -168,9 +182,9 @@ const LightweightMarkdown = ({ content, title, category, tags, type }: Lightweig
                     {children}
                   </a>
                 ),
-                // Enhanced table styling for keybinds
+                // Enhanced table styling for keybinds with better structure
                 table: ({ children }) => (
-                  <div className="overflow-x-auto my-6 border border-gray-600 rounded-lg">
+                  <div className="overflow-x-auto my-8 border-gray-600 rounded-lg shadow-lg">
                     <table className="min-w-full divide-y divide-gray-600">
                       {children}
                     </table>
@@ -187,20 +201,21 @@ const LightweightMarkdown = ({ content, title, category, tags, type }: Lightweig
                   </tbody>
                 ),
                 tr: ({ children }) => (
-                  <tr className="hover:bg-gray-800 transition-colors">
+                  <tr className="hover:bg-gray-800/50 transition-colors duration-150">
                     {children}
                   </tr>
                 ),
                 th: ({ children }) => (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider border-b border-gray-600">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider border-b border-gray-600 bg-gray-800/80">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 border-b border-gray-700">
+                  <td className="px-6 py-4 text-sm text-gray-300 border-b border-gray-700">
                     {children}
                   </td>
                 ),
+
               }}
             >
               {content}

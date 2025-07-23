@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from 'react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 // Lazy load syntax highlighter to reduce initial bundle
 const SyntaxHighlighter = lazy(() => 
@@ -119,6 +120,7 @@ const ContentRenderer = ({ content, title, category, tags, type }: ContentRender
           className="prose prose-invert prose-lg max-w-none"
         >
           <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
             components={{
               // Optimized code block rendering
               code: ({ node, className, children, ...props }: any) => {
@@ -168,7 +170,14 @@ const ContentRenderer = ({ content, title, category, tags, type }: ContentRender
                     </div>
                   </Suspense>
                 ) : (
-                  <code className="bg-gray-800 px-2 py-1 rounded text-sm font-mono" {...props}>
+                  <code 
+                    className={`px-2 py-1 rounded text-sm font-mono ${
+                      /^[A-Za-z0-9\s\+\-\*\/\(\)\[\]\{\}\.\,\;\:\!\@\#\$\%\^\&\*\(\)\_\+\-\=\{\}\[\]\|\:\;\'\"\<\>\?\/\\]+$/.test(String(children))
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                        : 'bg-gray-800 text-gray-200'
+                    }`} 
+                    {...props}
+                  >
                     {children}
                   </code>
                 );
@@ -228,9 +237,9 @@ const ContentRenderer = ({ content, title, category, tags, type }: ContentRender
                   {children}
                 </a>
               ),
-              // Enhanced table styling for keybinds
+              // Enhanced table styling for keybinds with better structure
               table: ({ children }) => (
-                <div className="overflow-x-auto my-6 border border-gray-600 rounded-lg">
+                <div className="overflow-x-auto my-8 border border-gray-600 rounded-lg shadow-lg">
                   <table className="min-w-full divide-y divide-gray-600">
                     {children}
                   </table>
@@ -247,17 +256,17 @@ const ContentRenderer = ({ content, title, category, tags, type }: ContentRender
                 </tbody>
               ),
               tr: ({ children }) => (
-                <tr className="hover:bg-gray-800 transition-colors">
+                <tr className="hover:bg-gray-800/50 transition-colors duration-150">
                   {children}
                 </tr>
               ),
               th: ({ children }) => (
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider border-b border-gray-600">
+                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-200 uppercase tracking-wider border-b border-gray-600 bg-gray-800/80">
                   {children}
                 </th>
               ),
               td: ({ children }) => (
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 border-b border-gray-700">
+                <td className="px-6 py-4 text-sm text-gray-300 border-b border-gray-700">
                   {children}
                 </td>
               ),
